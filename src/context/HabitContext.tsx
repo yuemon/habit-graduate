@@ -4,11 +4,13 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { AppState, Completion, Habit, MAX_ACTIVE_HABITS } from '../types';
 import { DEFAULT_STATE, loadState, saveState } from '../storage/persistence';
-import { toDateKey } from '../utils/dates';
+import { addHabitToState, graduateHabitInState, toggleHabitToday } from '../domain/habits';
+import { useLocalDay } from '../utils/useLocalDay';
 
 function makeId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -16,6 +18,9 @@ function makeId(prefix: string): string {
 
 interface HabitContextValue {
   ready: boolean;
+  storageError: string | null;
+  retryStorage: () => void;
+  today: string;
   habits: Habit[];
   completions: Completion[];
   onboardingComplete: boolean;
@@ -39,25 +44,50 @@ const HabitContext = createContext<HabitContextValue | null>(null);
 export function HabitProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const [ready, setReady] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
+  const latest = useRef(state);
+  const hydrated = useRef(false);
+  const today = useLocalDay();
+  // Advance the state ref synchronously: two submissions in one render cannot
+  // both pass the fifth-slot check using a stale captured count.
+  const commit = useCallback((next: AppState) => {
+    latest.current = next;
+    setState(next);
+  }, []);
+  const retryStorage = useCallback(() => setRetry(n => n + 1), []);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const loaded = await loadState();
-      if (mounted) {
-        setState(loaded);
-        setReady(true);
+      if (hydrated.current) return;
+      try {
+        const loaded = await loadState();
+        if (mounted) {
+          commit(loaded);
+          hydrated.current = true;
+          setStorageError(null);
+          setReady(true);
+        }
+      } catch {
+        if (mounted) setStorageError('Stored habits could not be loaded. Your saved data has not been replaced. Please retry.');
       }
     })();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [retry, commit]);
 
   useEffect(() => {
     if (!ready) return;
-    saveState(state).catch(() => {});
-  }, [state, ready]);
+    let current = true;
+    saveState(state).then(() => {
+      if (current) setStorageError(null);
+    }).catch(() => {
+      if (current) setStorageError('Changes could not be saved. Keep this app open and retry to avoid losing recent changes.');
+    });
+    return () => { current = false; };
+  }, [state, ready, retry]);
 
   const activeHabits = useMemo(
     () =>
@@ -79,79 +109,25 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
   const canAddHabit = activeCount < MAX_ACTIVE_HABITS;
 
   const completeOnboarding = useCallback(() => {
-    setState((s) => ({ ...s, onboardingComplete: true }));
-  }, []);
+    if (hydrated.current) commit({ ...latest.current, onboardingComplete: true });
+  }, [commit]);
 
   const addHabit = useCallback(
     (input: { name: string; tinyVersion?: string; anchorCue: string }) => {
-      const name = input.name.trim();
-      if (!name) return { ok: false as const, reason: 'Name is required.' };
-      if (activeCount >= MAX_ACTIVE_HABITS) {
-        return {
-          ok: false as const,
-          reason: 'You already have 5 active habits. Graduate one to free a slot.',
-        };
-      }
-      const habit: Habit = {
-        id: makeId('habit'),
-        name,
-        tinyVersion: input.tinyVersion?.trim() || null,
-        anchorCue: input.anchorCue.trim(),
-        createdAt: new Date().toISOString(),
-        status: 'active',
-        graduatedAt: null,
-        graduationNote: null,
-      };
-      setState((s) => ({ ...s, habits: [...s.habits, habit] }));
-      return { ok: true as const, habit };
-    },
-    [activeCount],
+      if (!hydrated.current) return { ok: false as const, reason: 'Please wait for your habits to load.' };
+      const result = addHabitToState(latest.current, input, makeId('habit'));
+      if (result.ok) commit(result.state);
+      return result;
+    }, [commit],
   );
 
   const toggleToday = useCallback((habitId: string) => {
-    const today = toDateKey();
-    setState((s) => {
-      const habit = s.habits.find((h) => h.id === habitId);
-      if (!habit || habit.status !== 'active') return s;
-
-      const existing = s.completions.find(
-        (c) => c.habitId === habitId && c.date === today,
-      );
-      let completions: Completion[];
-      if (existing) {
-        completions = s.completions.map((c) =>
-          c.id === existing.id ? { ...c, completed: !c.completed } : c,
-        );
-      } else {
-        completions = [
-          ...s.completions,
-          {
-            id: makeId('comp'),
-            habitId,
-            date: today,
-            completed: true,
-          },
-        ];
-      }
-      return { ...s, completions };
-    });
-  }, []);
+    if (hydrated.current) commit(toggleHabitToday(latest.current, habitId, makeId('comp')));
+  }, [commit]);
 
   const graduateHabit = useCallback((habitId: string, note?: string) => {
-    setState((s) => ({
-      ...s,
-      habits: s.habits.map((h) =>
-        h.id === habitId && h.status === 'active'
-          ? {
-              ...h,
-              status: 'graduated' as const,
-              graduatedAt: new Date().toISOString(),
-              graduationNote: note?.trim() || null,
-            }
-          : h,
-      ),
-    }));
-  }, []);
+    if (hydrated.current) commit(graduateHabitInState(latest.current, habitId, note));
+  }, [commit]);
 
   const getHabit = useCallback(
     (id: string) => state.habits.find((h) => h.id === id),
@@ -160,6 +136,9 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
 
   const value: HabitContextValue = {
     ready,
+    storageError,
+    retryStorage,
+    today,
     habits: state.habits,
     completions: state.completions,
     onboardingComplete: state.onboardingComplete,

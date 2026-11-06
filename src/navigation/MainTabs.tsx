@@ -108,9 +108,8 @@ export function MainTabs() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            if (canAddHabit) {
-              navigation.navigate('AddHabit');
-            }
+            // At capacity, open the explanatory disabled form instead of a dead tab.
+            navigation.navigate('AddHabit');
           },
         }}
         options={{

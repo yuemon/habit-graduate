@@ -30,6 +30,9 @@ export function TodayScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Today</Text>
         <Text style={styles.date}>{formatTodayHeader()}</Text>
+        <Text style={styles.slots}>
+          {activeHabits.length} of 5 slots used{!canAddHabit ? ' · Graduate a habit to make room' : ''}
+        </Text>
       </View>
 
       {activeHabits.length === 0 ? (
@@ -75,7 +78,15 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.title,
+    fontSize: 24,
+    lineHeight: 30,
     color: colors.text,
+  },
+  slots: {
+    ...typography.caption,
+    color: colors.accent,
+    textAlign: 'center',
+    marginTop: 7,
   },
   date: {
     ...typography.caption,

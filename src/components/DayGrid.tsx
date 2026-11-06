@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Habit, Completion } from '../types';
+import { useHabits } from '../context/HabitContext';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { lastNDays, parseDateKey, formatShortRange } from '../utils/dates';
-import { dayInHabitRange, isCompletedOn } from '../utils/consistency';
+import { dayInHabitRange, habitEndDate, isCompletedOn } from '../utils/consistency';
 
 interface Props {
   habit: Habit;
@@ -20,14 +21,15 @@ function buildCalendarCells(keys: string[]) {
   const first = parseDateKey(keys[0]);
   // JS: 0=Sun … 6=Sat → Monday-first index 0..6
   const mondayIndex = (first.getDay() + 6) % 7;
-  const cells: Array<string | null> = Array(mondayIndex).fill(null);
+  const cells: (string | null)[] = Array(mondayIndex).fill(null);
   keys.forEach((k) => cells.push(k));
   while (cells.length % 7 !== 0) cells.push(null);
   return cells;
 }
 
 export function DayGrid({ habit, completions, days = 30 }: Props) {
-  const keys = useMemo(() => lastNDays(days), [days]);
+  const { today } = useHabits();
+  const keys = useMemo(() => lastNDays(days, habitEndDate(habit, parseDateKey(today))), [days, habit, today]);
   const cells = useMemo(() => buildCalendarCells(keys), [keys]);
   const rangeLabel =
     keys.length > 0 ? formatShortRange(keys[0], keys[keys.length - 1]) : '';

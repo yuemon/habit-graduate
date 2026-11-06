@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
+import { PrimaryButton } from '../components/PrimaryButton';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useHabits } from '../context/HabitContext';
@@ -25,7 +26,7 @@ const navTheme = {
 };
 
 export function RootNavigator() {
-  const { ready, onboardingComplete } = useHabits();
+  const { ready, onboardingComplete, storageError, retryStorage } = useHabits();
 
   if (!ready) {
     return (
@@ -37,12 +38,20 @@ export function RootNavigator() {
           justifyContent: 'center',
         }}
       >
-        <ActivityIndicator color={colors.accent} />
+        {storageError ? <View style={{ padding: 24, gap: 16 }}>
+          <Text accessibilityRole="alert" style={{ color: colors.text }}>{storageError}</Text>
+          <PrimaryButton label="Retry loading" onPress={retryStorage} />
+        </View> : <ActivityIndicator color={colors.accent} />}
       </View>
     );
   }
 
   return (
+    <View style={{ flex: 1 }}>
+      {storageError ? <View style={{ backgroundColor: colors.surface, padding: 12 }}>
+        <Text accessibilityRole="alert" style={{ color: colors.text }}>{storageError}</Text>
+        <PrimaryButton label="Retry saving" onPress={retryStorage} />
+      </View> : null}
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator
         screenOptions={{
@@ -79,5 +88,6 @@ export function RootNavigator() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    </View>
   );
 }

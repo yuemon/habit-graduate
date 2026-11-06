@@ -6,8 +6,8 @@ import { typography } from '../theme/typography';
 import { CircularCheckbox } from './CircularCheckbox';
 import { AnchorIcon } from './icons/Icons';
 import { useHabits } from '../context/HabitContext';
-import { getConsistency, isCompletedOn } from '../utils/consistency';
-import { daysTracked, formatStartedDate, toDateKey } from '../utils/dates';
+import { getConsistency, habitStartKey, isCompletedOn } from '../utils/consistency';
+import { formatStartedDate } from '../utils/dates';
 
 interface Props {
   habit: Habit;
@@ -15,12 +15,10 @@ interface Props {
 }
 
 export function HabitCard({ habit, onPress }: Props) {
-  const { completions, toggleToday } = useHabits();
-  const today = toDateKey();
+  const { completions, toggleToday, today } = useHabits();
   const doneToday = isCompletedOn(habit.id, today, completions);
-  const { percent } = getConsistency(habit, completions);
-  const totalDays = daysTracked(habit.createdAt);
-  const startedLabel = formatStartedDate(habit.createdAt);
+  const { percent, tracked: totalDays } = getConsistency(habit, completions);
+  const startedLabel = formatStartedDate(habitStartKey(habit));
   const anchorLabel = habit.anchorCue
     ? habit.anchorCue.toLowerCase().startsWith('after')
       ? habit.anchorCue
@@ -49,6 +47,9 @@ export function HabitCard({ habit, onPress }: Props) {
                 Anchor: {anchorLabel}
               </Text>
             </View>
+          ) : null}
+          {habit.tinyVersion?.trim() ? (
+            <Text style={styles.tiny} numberOfLines={2}>Tiny version: {habit.tinyVersion}</Text>
           ) : null}
           <Text style={styles.meta} numberOfLines={2}>
             {metaLine}
@@ -100,6 +101,12 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.accent,
     flexShrink: 1,
+  },
+  tiny: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    lineHeight: 19,
+    marginTop: 3,
   },
   meta: {
     ...typography.caption,

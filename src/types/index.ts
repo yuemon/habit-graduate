@@ -6,9 +6,11 @@ export interface Habit {
   tinyVersion: string | null;
   anchorCue: string;
   createdAt: string; // ISO datetime
+  startedOn?: string; // Local calendar day; optional for existing v1 data
   status: HabitStatus;
   graduatedAt: string | null; // ISO datetime
   graduationNote: string | null;
+  graduatedOn?: string; // Local calendar day, optional for legacy records
 }
 
 export interface Completion {

@@ -66,6 +66,8 @@ export function ArchiveScreen() {
                 styles.card,
                 pressed && { opacity: 0.85 },
               ]}
+              accessibilityRole="button"
+              accessibilityLabel={`View established habit ${item.name}`}
               onPress={() =>
                 navigation.navigate('HabitDetail', { habitId: item.id })
               }
@@ -82,7 +84,7 @@ export function ArchiveScreen() {
                   <Text style={styles.date}>
                     Graduated on{' '}
                     {item.graduatedAt
-                      ? formatDisplayDate(item.graduatedAt)
+                      ? formatDisplayDate(item.graduatedOn ?? item.graduatedAt)
                       : '—'}
                   </Text>
                 </View>
@@ -109,6 +111,8 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.title,
+    fontSize: 24,
+    lineHeight: 30,
     color: colors.text,
   },
   list: {

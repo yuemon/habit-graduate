@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppBrandHeader } from '../components/AppBrandHeader';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { LeafSproutIcon } from '../components/icons/Icons';
@@ -18,7 +18,7 @@ export function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <View style={styles.leafCircle}>
             <LeafSproutIcon size={28} color={colors.accent} />
@@ -36,7 +36,7 @@ export function OnboardingScreen() {
         </View>
 
         <PrimaryButton label="Get started" onPress={completeOnboarding} />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -47,7 +47,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
+    gap: 24,
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 32,

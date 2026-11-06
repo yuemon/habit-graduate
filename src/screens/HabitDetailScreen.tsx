@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Alert,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -23,7 +25,7 @@ import {
 } from '../components/icons/Icons';
 import { useHabits } from '../context/HabitContext';
 import { getConsistency, isCompletedOn } from '../utils/consistency';
-import { toDateKey } from '../utils/dates';
+import { formatDisplayDate } from '../utils/dates';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { RootStackParamList } from '../navigation/types';
@@ -35,7 +37,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export function HabitDetailScreen() {
   const { params } = useRoute<Route>();
   const navigation = useNavigation<Nav>();
-  const { getHabit, completions, toggleToday, graduateHabit } = useHabits();
+  const { getHabit, completions, toggleToday, graduateHabit, today } = useHabits();
   const habit = getHabit(params.habitId);
   const [confirming, setConfirming] = useState(false);
   const [note, setNote] = useState('');
@@ -52,8 +54,7 @@ export function HabitDetailScreen() {
     );
   }
 
-  const { percent } = getConsistency(habit, completions);
-  const today = toDateKey();
+  const { percent, completed, tracked } = getConsistency(habit, completions);
   const doneToday =
     habit.status === 'active' && isCompletedOn(habit.id, today, completions);
   const isActive = habit.status === 'active';
@@ -65,21 +66,13 @@ export function HabitDetailScreen() {
 
   const onGraduate = () => {
     graduateHabit(habit.id, note);
-    navigation.navigate('Main', { screen: 'Archive' });
+    setConfirming(false);
+    navigation.popTo('Main', { screen: 'Archive' });
   };
 
   const askGraduate = () => {
-    Alert.alert(
-      'Graduate this habit?',
-      'This will move the habit to Established Habits and free a slot.',
-      [
-        { text: 'Not yet', style: 'cancel' },
-        {
-          text: 'Graduate',
-          onPress: () => setConfirming(true),
-        },
-      ],
-    );
+    setNote('');
+    setConfirming(true);
   };
 
   return (
@@ -121,7 +114,7 @@ export function HabitDetailScreen() {
                 <InfoIcon size={13} color={colors.textMuted} />
               </View>
               <Text style={styles.percent}>{percent}%</Text>
-              <Text style={styles.last30}>last 30 days</Text>
+              <Text style={styles.last30}>since starting · {completed} of {tracked} days</Text>
             </View>
             <ProgressRing percent={percent} size={92} strokeWidth={7} />
           </View>
@@ -140,6 +133,11 @@ export function HabitDetailScreen() {
             </Text>
           </View>
         ) : null}
+
+        {habit.tinyVersion?.trim() ? <View style={styles.gridCard}>
+          <Text style={styles.noteLabel}>Tiny version</Text>
+          <Text style={styles.confirmBody}>{habit.tinyVersion}</Text>
+        </View> : null}
 
         <View style={styles.gridCard}>
           <DayGrid habit={habit} completions={completions} days={30} />
@@ -160,37 +158,53 @@ export function HabitDetailScreen() {
           </Pressable>
         ) : null}
 
-        {isActive && confirming ? (
-          <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>Ready to graduate</Text>
-            <Text style={styles.confirmBody}>
-              This will move the habit to Established Habits and free a slot.
-              That is progress — you made room for what comes next.
-            </Text>
-            <Text style={styles.noteLabel}>Optional reflection</Text>
-            <TextInput
-              style={styles.noteInput}
-              value={note}
-              onChangeText={setNote}
-              placeholder="What helped this stick?"
-              placeholderTextColor={colors.textMuted}
-              multiline
-            />
-            <PrimaryButton label="Graduate" onPress={onGraduate} />
-            <View style={{ height: 8 }} />
-            <PrimaryButton
-              label="Keep building"
-              onPress={() => setConfirming(false)}
-              variant="ghost"
-            />
-          </View>
-        ) : null}
+        <Modal
+          visible={isActive && confirming}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setConfirming(false)}
+        >
+          <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.modalScroll} keyboardShouldPersistTaps="handled">
+                <View style={styles.confirmBox} role="dialog" accessibilityLabel="Graduate this habit?" accessibilityViewIsModal>
+                  <AppBrandHeader />
+                  <Text style={styles.confirmTitle} accessibilityRole="header">Graduate this habit?</Text>
+                  <Text style={styles.confirmBody}>
+                    This will move the habit to Established Habits and free a slot.
+                    That is progress — you made room for what comes next.
+                  </Text>
+                  <Text style={styles.noteLabel}>Optional reflection</Text>
+                  <TextInput
+                    accessibilityLabel="Optional reflection"
+                    autoFocus
+                    maxLength={2000}
+                    style={styles.noteInput}
+                    value={note}
+                    onChangeText={setNote}
+                    placeholder="What helped this stick?"
+                    placeholderTextColor={colors.textMuted}
+                    multiline
+                  />
+                  <PrimaryButton label="Graduate" onPress={onGraduate} />
+                  <View style={{ height: 8 }} />
+                  <PrimaryButton
+                    label="Keep building"
+                    onPress={() => setConfirming(false)}
+                    variant="ghost"
+                  />
+                </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </Modal>
+
+
 
         {!isActive ? (
           <View style={styles.archivedBanner}>
             <LeafSproutIcon size={18} color={colors.accent} />
             <Text style={styles.archivedText}>
-              Established — this habit lives in your archive.
+              Established{habit.graduatedAt ? ` · Graduated ${formatDisplayDate(habit.graduatedOn ?? habit.graduatedAt)}` : ''} — this habit lives in your archive.
+              {habit.graduationNote ? `\n\nReflection: ${habit.graduationNote}` : ''}
             </Text>
           </View>
         ) : null}
@@ -226,6 +240,7 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     ...typography.titleSerif,
+    fontSize: 24,
     color: colors.text,
   },
   container: {
@@ -324,7 +339,19 @@ const styles = StyleSheet.create({
     ...typography.bodyMedium,
     color: colors.accent,
   },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.72)',
+  },
+  modalScroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   confirmBox: {
+    width: '100%',
+    maxWidth: 480,
     backgroundColor: colors.surface,
     borderRadius: 22,
     padding: 16,

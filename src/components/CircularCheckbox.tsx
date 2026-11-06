@@ -18,12 +18,12 @@ export function CircularCheckbox({
 }: Props) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={(event) => { event.stopPropagation(); onPress(); }}
       hitSlop={12}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       accessibilityLabel={accessibilityLabel ?? 'Mark complete for today'}
-      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }]}
     >
       <View
         style={[

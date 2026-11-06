@@ -11,12 +11,18 @@ export function parseDateKey(key: string): Date {
   return new Date(y, m - 1, d);
 }
 
+/** Date-only values are local calendar days, never UTC midnight. */
+export function dateFromStored(value: string): Date {
+  return value.includes('T') ? new Date(value) : parseDateKey(value);
+}
+
 /** Inclusive day count from start (ISO or YYYY-MM-DD) to endDate (Date or key). */
 export function daysTracked(createdAt: string, end: Date = new Date()): number {
-  const start = new Date(createdAt);
-  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  const diff = Math.floor((endDay.getTime() - startDay.getTime()) / 86400000);
+  const start = dateFromStored(createdAt);
+  // Count calendar boundaries, not elapsed 24-hour periods (DST days vary).
+  const startDay = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDay = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+  const diff = Math.round((endDay - startDay) / 86400000);
   return Math.max(1, diff + 1);
 }
 

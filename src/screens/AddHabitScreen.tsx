@@ -38,7 +38,7 @@ export function AddHabitScreen() {
     navigation.goBack();
   };
 
-  const disabled = !canAddHabit || !name.trim();
+  const disabled = !canAddHabit || !name.trim() || !anchorCue.trim();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -66,9 +66,10 @@ export function AddHabitScreen() {
           ) : null}
 
           <View style={styles.field}>
-            <Text style={styles.label}>Habit name</Text>
+            <Text style={styles.label}>Habit name (required)</Text>
             <TextInput
               style={styles.input}
+              accessibilityLabel="Habit name (required)"
               value={name}
               onChangeText={setName}
               placeholder="e.g. Morning stretch"
@@ -81,11 +82,12 @@ export function AddHabitScreen() {
           <View style={styles.field}>
             <Text style={styles.label}>Tiny version (optional)</Text>
             <Text style={styles.helper}>
-              Start with the smallest viable action — one push-up, one page, one
-              glass of water.
+              The smallest action that counts on a busy day — one push-up, one
+              page, one glass of water.
             </Text>
             <TextInput
               style={styles.input}
+              accessibilityLabel="Tiny version (optional)"
               value={tinyVersion}
               onChangeText={setTinyVersion}
               placeholder="e.g. Stretch for 30 seconds"
@@ -95,12 +97,13 @@ export function AddHabitScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>After I…</Text>
+            <Text style={styles.label}>After I… (required)</Text>
             <Text style={styles.helper}>
               Anchor the habit to something you already do.
             </Text>
             <TextInput
               style={styles.input}
+              accessibilityLabel="After I (required anchor cue)"
               value={anchorCue}
               onChangeText={setAnchorCue}
               placeholder="pour my morning coffee / brush my teeth"
@@ -140,6 +143,8 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.title,
+    fontSize: 24,
+    lineHeight: 30,
     color: colors.text,
   },
   slots: {
