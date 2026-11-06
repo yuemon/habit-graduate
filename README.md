@@ -6,6 +6,8 @@ A deliberately constrained habit tracker: at most **5 active habits**. When a ha
 
 Non-punitive by design — consistency % and a 30-day completion grid. No streak counters, no guilt UI.
 
+**Web (GitHub Pages):** https://yuemon.github.io/habit-graduate/
+
 ## How to run
 
 ```bash
@@ -25,9 +27,17 @@ Scripts:
 | Command | Description |
 |---------|-------------|
 | `npm start` / `npx expo start` | Start Metro bundler |
-| `npm run web` | Open in browser |
+| `npm run web` | Open in browser (dev) |
+| `npm run web:export` | Static web export → `dist/` (+ `.nojekyll`, `404.html`) |
+| `npm run web:serve` | Serve `dist/` locally |
 | `npm run android` | Android |
 | `npm run ios` | iOS (macOS) |
+
+## Deploy (browser link)
+
+See **[docs/DEPLOY.md](docs/DEPLOY.md)** for GitHub Pages vs Vercel/Netlify.
+
+Push to `master` runs `.github/workflows/pages.yml` and publishes the static SPA to Pages.
 
 ## MVP (Phase 1) — implemented
 
@@ -57,6 +67,7 @@ Scripts:
 - React Navigation (native stack + bottom tabs)
 - AsyncStorage for persistence
 - Dark theme primary
+- Static web: Metro `web.output: "single"`, `experiments.baseUrl: "/habit-graduate"`
 
 ## Psychology guardrails
 
