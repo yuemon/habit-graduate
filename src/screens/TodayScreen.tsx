@@ -14,25 +14,20 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { useHabits } from '../context/HabitContext';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-import { MAX_ACTIVE_HABITS } from '../types';
+import { formatTodayHeader } from '../utils/dates';
 import { RootStackParamList } from '../navigation/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export function TodayScreen() {
-  const { activeHabits, activeCount, canAddHabit } = useHabits();
+  const { activeHabits, canAddHabit } = useHabits();
   const navigation = useNavigation<Nav>();
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Today</Text>
-          <Text style={styles.motto}>Build it. Master it. Move on.</Text>
-        </View>
-        <Text style={styles.slots}>
-          {activeCount} of {MAX_ACTIVE_HABITS} slots
-        </Text>
+        <Text style={styles.title}>Today</Text>
+        <Text style={styles.date}>{formatTodayHeader()}</Text>
       </View>
 
       {activeHabits.length === 0 ? (
@@ -59,16 +54,6 @@ export function TodayScreen() {
               }
             />
           )}
-          ListFooterComponent={
-            <View style={styles.footer}>
-              <PrimaryButton
-                label={canAddHabit ? 'Add habit' : 'All 5 slots in use'}
-                onPress={() => navigation.navigate('AddHabit')}
-                disabled={!canAddHabit}
-                variant={canAddHabit ? 'secondary' : 'ghost'}
-              />
-            </View>
-          }
         />
       )}
     </SafeAreaView>
@@ -82,32 +67,22 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    paddingTop: 20,
+    paddingBottom: 12,
+    alignItems: 'center',
   },
   title: {
     ...typography.title,
     color: colors.text,
   },
-  motto: {
+  date: {
     ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  slots: {
-    ...typography.caption,
-    color: colors.accent,
+    color: colors.textMuted,
     marginTop: 6,
   },
   list: {
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 8,
     paddingBottom: 32,
-  },
-  footer: {
-    marginTop: 8,
   },
 });

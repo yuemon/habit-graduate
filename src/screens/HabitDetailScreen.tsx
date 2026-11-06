@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,13 +13,20 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DayGrid } from '../components/DayGrid';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { CircularCheckbox } from '../components/CircularCheckbox';
+import { ProgressRing } from '../components/ProgressRing';
+import {
+  ChevronLeftIcon,
+  GraduationCapIcon,
+  InfoIcon,
+  LeafSproutIcon,
+} from '../components/icons/Icons';
 import { useHabits } from '../context/HabitContext';
 import { getConsistency, isCompletedOn } from '../utils/consistency';
 import { toDateKey } from '../utils/dates';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { RootStackParamList } from '../navigation/types';
+import { CircularCheckbox } from '../components/CircularCheckbox';
 
 type Route = RouteProp<RootStackParamList, 'HabitDetail'>;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -42,11 +50,16 @@ export function HabitDetailScreen() {
     );
   }
 
-  const { percent, completed, tracked } = getConsistency(habit, completions);
+  const { percent } = getConsistency(habit, completions);
   const today = toDateKey();
   const doneToday =
     habit.status === 'active' && isCompletedOn(habit.id, today, completions);
   const isActive = habit.status === 'active';
+  const anchorLabel = habit.anchorCue
+    ? habit.anchorCue.toLowerCase().startsWith('after')
+      ? habit.anchorCue
+      : `After I ${habit.anchorCue}`
+    : null;
 
   const onGraduate = () => {
     graduateHabit(habit.id, note);
@@ -56,7 +69,7 @@ export function HabitDetailScreen() {
   const askGraduate = () => {
     Alert.alert(
       'Graduate this habit?',
-      'This will move the habit to your archive and free a slot.',
+      'This will move the habit to Established Habits and free a slot.',
       [
         { text: 'Not yet', style: 'cancel' },
         {
@@ -69,21 +82,46 @@ export function HabitDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.name}>{habit.name}</Text>
-        {habit.anchorCue ? (
-          <Text style={styles.cue}>After I {habit.anchorCue}</Text>
-        ) : null}
-        {habit.tinyVersion ? (
-          <Text style={styles.tiny}>Tiny version: {habit.tinyVersion}</Text>
-        ) : null}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <ChevronLeftIcon size={20} color={colors.text} />
+        </Pressable>
+        <Text style={styles.screenTitle}>Habit Detail</Text>
+        <View style={styles.backBtnPlaceholder} />
+      </View>
 
-        <View style={styles.percentBlock}>
-          <Text style={styles.percent}>{percent}%</Text>
-          <Text style={styles.percentLabel}>consistency</Text>
-          <Text style={styles.stats}>
-            {completed} completed · {tracked} days tracked
-          </Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.topCard}>
+          <View style={styles.identityRow}>
+            <View style={styles.leafCircle}>
+              <LeafSproutIcon size={24} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{habit.name}</Text>
+              {anchorLabel ? (
+                <Text style={styles.cue}>Anchor: {anchorLabel}</Text>
+              ) : null}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.consistencyRow}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.consistencyLabelRow}>
+                <Text style={styles.consistencyLabel}>CONSISTENCY</Text>
+                <InfoIcon size={13} color={colors.textMuted} />
+              </View>
+              <Text style={styles.percent}>{percent}%</Text>
+              <Text style={styles.last30}>last 30 days</Text>
+            </View>
+            <ProgressRing percent={percent} size={92} strokeWidth={7} />
+          </View>
         </View>
 
         {isActive ? (
@@ -91,7 +129,7 @@ export function HabitDetailScreen() {
             <CircularCheckbox
               checked={doneToday}
               onPress={() => toggleToday(habit.id)}
-              size={40}
+              size={36}
               accessibilityLabel={`Mark ${habit.name} complete for today`}
             />
             <Text style={styles.checkLabel}>
@@ -100,24 +138,31 @@ export function HabitDetailScreen() {
           </View>
         ) : null}
 
-        <View style={styles.gridBlock}>
+        <View style={styles.gridCard}>
           <DayGrid habit={habit} completions={completions} days={30} />
         </View>
 
         {isActive && !confirming ? (
-          <PrimaryButton
-            label="Graduate this habit"
+          <Pressable
             onPress={askGraduate}
-            variant="secondary"
-          />
+            style={({ pressed }) => [
+              styles.graduatePill,
+              pressed && { opacity: 0.85 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Graduate this habit"
+          >
+            <GraduationCapIcon size={18} color={colors.accent} />
+            <Text style={styles.graduateText}>Graduate this habit</Text>
+          </Pressable>
         ) : null}
 
         {isActive && confirming ? (
           <View style={styles.confirmBox}>
             <Text style={styles.confirmTitle}>Ready to graduate</Text>
             <Text style={styles.confirmBody}>
-              This will move the habit to your archive and free a slot. That is
-              progress — you made room for what comes next.
+              This will move the habit to Established Habits and free a slot.
+              That is progress — you made room for what comes next.
             </Text>
             <Text style={styles.noteLabel}>Optional reflection</Text>
             <TextInput
@@ -140,18 +185,12 @@ export function HabitDetailScreen() {
 
         {!isActive ? (
           <View style={styles.archivedBanner}>
+            <LeafSproutIcon size={18} color={colors.accent} />
             <Text style={styles.archivedText}>
-              Graduated — this habit lives in your archive.
+              Established — this habit lives in your archive.
             </Text>
           </View>
         ) : null}
-
-        <View style={{ height: 16 }} />
-        <PrimaryButton
-          label="Back"
-          onPress={() => navigation.goBack()}
-          variant="ghost"
-        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -162,69 +201,129 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnPlaceholder: {
+    width: 40,
+    height: 40,
+  },
+  screenTitle: {
+    ...typography.titleSerif,
+    color: colors.text,
+  },
   container: {
     padding: 20,
     paddingBottom: 40,
   },
+  topCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 14,
+  },
+  identityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  leafCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.leafBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   name: {
-    ...typography.title,
+    ...typography.habitNameSerif,
     color: colors.text,
   },
   cue: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginTop: 6,
-  },
-  tiny: {
     ...typography.caption,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     marginTop: 4,
   },
-  percentBlock: {
-    marginTop: 28,
-    marginBottom: 20,
-    alignItems: 'flex-start',
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginVertical: 16,
+  },
+  consistencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  consistencyLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  consistencyLabel: {
+    ...typography.labelCaps,
+    color: colors.textMuted,
   },
   percent: {
     ...typography.percent,
     color: colors.accent,
   },
-  percentLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  stats: {
+  last30: {
     ...typography.caption,
     color: colors.textMuted,
-    marginTop: 8,
+    marginTop: 2,
   },
   checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     backgroundColor: colors.surface,
-    borderRadius: 14,
+    borderRadius: 22,
     padding: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: colors.borderSoft,
+    marginBottom: 14,
   },
   checkLabel: {
     ...typography.bodyMedium,
     color: colors.text,
   },
-  gridBlock: {
+  gridCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: 20,
+  },
+  graduatePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: colors.graduatePillBg,
     borderWidth: 1,
-    borderColor: colors.borderSoft,
+    borderColor: colors.graduatePillBorder,
+    borderRadius: 999,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  graduateText: {
+    ...typography.bodyMedium,
+    color: colors.accent,
   },
   confirmBox: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.accentSoft,
@@ -247,7 +346,7 @@ const styles = StyleSheet.create({
   },
   noteInput: {
     backgroundColor: colors.surfaceElevated,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 12,
@@ -259,12 +358,16 @@ const styles = StyleSheet.create({
   },
   archivedBanner: {
     backgroundColor: colors.accentDim,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   archivedText: {
     ...typography.body,
     color: colors.accent,
+    flex: 1,
   },
   missing: {
     flex: 1,

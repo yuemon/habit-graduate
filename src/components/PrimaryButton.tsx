@@ -48,7 +48,7 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 14,
+    borderRadius: 999,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',

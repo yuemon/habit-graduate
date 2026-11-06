@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   limitBanner: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: 14,

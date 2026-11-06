@@ -1,6 +1,7 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { LeafSproutIcon } from '../components/icons/Icons';
 import { useHabits } from '../context/HabitContext';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -18,6 +19,9 @@ export function OnboardingScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.header}>
+          <View style={styles.leafCircle}>
+            <LeafSproutIcon size={28} color={colors.accent} />
+          </View>
           <Text style={styles.name}>Habit Graduate</Text>
           <Text style={styles.motto}>Build it. Master it. Move on.</Text>
         </View>
@@ -45,30 +49,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingTop: 40,
     paddingBottom: 32,
     justifyContent: 'space-between',
   },
   header: {
-    gap: 8,
+    alignItems: 'center',
+    gap: 10,
+  },
+  leafCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.leafBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   name: {
     ...typography.hero,
     color: colors.text,
+    textAlign: 'center',
   },
   motto: {
     ...typography.body,
     color: colors.accent,
+    textAlign: 'center',
   },
   points: {
-    gap: 20,
+    gap: 14,
   },
   point: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 18,
-    borderWidth: 1,
-    borderColor: colors.borderSoft,
   },
   pointTitle: {
     ...typography.heading,

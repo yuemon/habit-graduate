@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { CheckIcon } from './icons/Icons';
 
 interface Props {
   checked: boolean;
@@ -12,7 +13,7 @@ interface Props {
 export function CircularCheckbox({
   checked,
   onPress,
-  size = 32,
+  size = 36,
   accessibilityLabel,
 }: Props) {
   return (
@@ -33,21 +34,11 @@ export function CircularCheckbox({
             borderRadius: size / 2,
             borderColor: checked ? colors.checkboxFilled : colors.checkboxEmpty,
             backgroundColor: checked ? colors.checkboxFilled : 'transparent',
+            borderWidth: checked ? 0 : 2,
           },
         ]}
       >
-        {checked ? (
-          <View
-            style={[
-              styles.innerDot,
-              {
-                width: size * 0.35,
-                height: size * 0.35,
-                borderRadius: size * 0.175,
-              },
-            ]}
-          />
-        ) : null}
+        {checked ? <CheckIcon size={size * 0.48} color={colors.white} /> : null}
       </View>
     </Pressable>
   );
@@ -55,11 +46,7 @@ export function CircularCheckbox({
 
 const styles = StyleSheet.create({
   circle: {
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  innerDot: {
-    backgroundColor: colors.background,
   },
 });

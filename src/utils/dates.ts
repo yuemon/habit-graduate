@@ -29,6 +29,35 @@ export function formatDisplayDate(isoOrKey: string): string {
   });
 }
 
+/** e.g. "May 21, 2025 • Wednesday" */
+export function formatTodayHeader(date: Date = new Date()): string {
+  const left = date.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'long' });
+  return `${left} • ${weekday}`;
+}
+
+/** e.g. "Apr 21 – May 20, 2024" */
+export function formatShortRange(startKey: string, endKey: string): string {
+  const start = parseDateKey(startKey);
+  const end = parseDateKey(endKey);
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const left = start.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  });
+  const right = end.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  return `${left} – ${right}`;
+}
+
 /** Last N calendar days ending today, oldest → newest */
 export function lastNDays(n: number, end: Date = new Date()): string[] {
   const keys: string[] = [];
