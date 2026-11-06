@@ -7,7 +7,7 @@ import { CircularCheckbox } from './CircularCheckbox';
 import { AnchorIcon } from './icons/Icons';
 import { useHabits } from '../context/HabitContext';
 import { getConsistency, isCompletedOn } from '../utils/consistency';
-import { toDateKey } from '../utils/dates';
+import { daysTracked, formatStartedDate, toDateKey } from '../utils/dates';
 
 interface Props {
   habit: Habit;
@@ -19,18 +19,23 @@ export function HabitCard({ habit, onPress }: Props) {
   const today = toDateKey();
   const doneToday = isCompletedOn(habit.id, today, completions);
   const { percent } = getConsistency(habit, completions);
+  const totalDays = daysTracked(habit.createdAt);
+  const startedLabel = formatStartedDate(habit.createdAt);
   const anchorLabel = habit.anchorCue
     ? habit.anchorCue.toLowerCase().startsWith('after')
       ? habit.anchorCue
       : `After I ${habit.anchorCue}`
     : null;
 
+  const dayWord = totalDays === 1 ? 'day' : 'days';
+  const metaLine = `Consistency: ${percent}% · Started ${startedLabel} · ${totalDays} ${dayWord}`;
+
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${habit.name}, ${percent} percent consistency`}
+      accessibilityLabel={`${habit.name}, ${percent} percent consistency, started ${startedLabel}, ${totalDays} ${dayWord}`}
     >
       <View style={styles.row}>
         <View style={styles.content}>
@@ -45,7 +50,9 @@ export function HabitCard({ habit, onPress }: Props) {
               </Text>
             </View>
           ) : null}
-          <Text style={styles.percent}>Consistency: {percent}%</Text>
+          <Text style={styles.meta} numberOfLines={2}>
+            {metaLine}
+          </Text>
         </View>
         <CircularCheckbox
           checked={doneToday}
@@ -94,9 +101,10 @@ const styles = StyleSheet.create({
     color: colors.accent,
     flexShrink: 1,
   },
-  percent: {
+  meta: {
     ...typography.caption,
     color: colors.textMuted,
     marginTop: 2,
+    lineHeight: 18,
   },
 });

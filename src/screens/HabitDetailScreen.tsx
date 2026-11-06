@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppBrandHeader } from '../components/AppBrandHeader';
 import { DayGrid } from '../components/DayGrid';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ProgressRing } from '../components/ProgressRing';
@@ -42,6 +43,7 @@ export function HabitDetailScreen() {
   if (!habit) {
     return (
       <SafeAreaView style={styles.safe}>
+        <AppBrandHeader />
         <View style={styles.missing}>
           <Text style={styles.missingText}>Habit not found.</Text>
           <PrimaryButton label="Go back" onPress={() => navigation.goBack()} />
@@ -82,6 +84,7 @@ export function HabitDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <AppBrandHeader />
       <View style={styles.topBar}>
         <Pressable
           onPress={() => navigation.goBack()}

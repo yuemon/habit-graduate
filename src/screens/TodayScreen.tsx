@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
+import { AppBrandHeader } from '../components/AppBrandHeader';
 import { HabitCard } from '../components/HabitCard';
 import { EmptyState } from '../components/EmptyState';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -25,6 +26,7 @@ export function TodayScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <AppBrandHeader />
       <View style={styles.header}>
         <Text style={styles.title}>Today</Text>
         <Text style={styles.date}>{formatTodayHeader()}</Text>
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 8,
     paddingBottom: 12,
     alignItems: 'center',
   },

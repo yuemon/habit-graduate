@@ -1,5 +1,6 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { AppBrandHeader } from '../components/AppBrandHeader';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { LeafSproutIcon } from '../components/icons/Icons';
 import { useHabits } from '../context/HabitContext';
@@ -22,8 +23,7 @@ export function OnboardingScreen() {
           <View style={styles.leafCircle}>
             <LeafSproutIcon size={28} color={colors.accent} />
           </View>
-          <Text style={styles.name}>Habit Graduate</Text>
-          <Text style={styles.motto}>Build it. Master it. Move on.</Text>
+          <AppBrandHeader size="hero" />
         </View>
 
         <View style={styles.points}>
@@ -65,16 +65,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
-  },
-  name: {
-    ...typography.hero,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  motto: {
-    ...typography.body,
-    color: colors.accent,
-    textAlign: 'center',
   },
   points: {
     gap: 14,

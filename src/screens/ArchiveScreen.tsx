@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppBrandHeader } from '../components/AppBrandHeader';
 import { EmptyState } from '../components/EmptyState';
 import { LeafSproutIcon, CheckIcon, ChevronRightIcon } from '../components/icons/Icons';
 import { useHabits } from '../context/HabitContext';
@@ -25,6 +26,7 @@ export function ArchiveScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <AppBrandHeader />
       <View style={styles.header}>
         <Text style={styles.title}>Established Habits</Text>
       </View>
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 8,
     paddingBottom: 8,
     alignItems: 'center',
   },

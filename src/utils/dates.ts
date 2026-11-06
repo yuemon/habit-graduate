@@ -29,6 +29,17 @@ export function formatDisplayDate(isoOrKey: string): string {
   });
 }
 
+/** Compact started date for habit cards, e.g. "May 1" (year if not current). */
+export function formatStartedDate(isoOrKey: string, now: Date = new Date()): string {
+  const d = isoOrKey.includes('T') ? new Date(isoOrKey) : parseDateKey(isoOrKey);
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  });
+}
+
 /** e.g. "May 21, 2025 • Wednesday" */
 export function formatTodayHeader(date: Date = new Date()): string {
   const left = date.toLocaleDateString(undefined, {

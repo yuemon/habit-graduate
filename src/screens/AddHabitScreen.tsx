@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppBrandHeader } from '../components/AppBrandHeader';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useHabits } from '../context/HabitContext';
 import { colors } from '../theme/colors';
@@ -45,6 +46,7 @@ export function AddHabitScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <AppBrandHeader />
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
@@ -132,7 +134,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   title: {
